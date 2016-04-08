@@ -1,0 +1,44 @@
+{
+  "name": "gulp-elasticbeanstalk-deploy",
+  "version": "0.1.0",
+  "description": "Gulp plugin for deploying into Amazon Elastic Beanstalk instance",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Souler/gulp-elasticbeanstalk-deploy.git"
+  },
+  "keywords": [
+    "gulp",
+    "gulp-plugin",
+    "plugin",
+    "amazon",
+    "aws",
+    "eb",
+    "elastic",
+    "beanstalk",
+    "beans",
+    "talk",
+    "elasticbeanstalk",
+    "deploy",
+    "upload"
+  ],
+  "author": "Juan José Herrero Barbosa <juanjo.herrero@upplication.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Souler/gulp-elasticbeanstalk-deploy/issues"
+  },
+  "homepage": "https://github.com/Souler/gulp-elasticbeanstalk-deploy#readme",
+  "dependencies": {
+    "aws-sdk": "^2.3.2",
+    "bluebird": "^3.3.4",
+    "gulp-util": "^3.0.7",
+    "gulp-zip": "^3.2.0",
+    "lodash": "^4.8.2",
+    "moment": "^2.12.0",
+    "plexer": "^1.0.1",
+    "through2": "^2.0.1"
+  }
+}
