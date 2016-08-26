@@ -1,5 +1,11 @@
 # gulp-elasticbeanstalk-deploy
 
+    Gulp plugin for deploying a set of files directly into an Amazon Elasticbeanstlak Instance
+
+  [![NPM Version][npm-image]][npm-url]
+  [![Build Status][travis-image]][travis-url]
+  [![Test Coverage][coveralls-image]][coveralls-url]
+
 ## Usage
 ```js
 var gulp = require('gulp')
@@ -37,3 +43,11 @@ The code above would work as follows
 * Creates a new version on the Application specified by `applicationName` with VersionLabel `{ version }-{ timestamp }` (i.e: `1.0.0-2016.04.08_13.26.32`)
 * Updates the Environment specified by `environmentName` by settings its application version to the new just uploaded
 * Waits for completion of the deploy process on the environment, informing on status changes
+
+
+[npm-image]: https://img.shields.io/npm/v/gulp-elasticbeanstalk-deploy.svg
+[npm-url]: https://npmjs.org/package/gulp-elasticbeanstalk-deploy
+[travis-image]: https://img.shields.io/travis/Upplication/gulp-elasticbeanstalk-deploy/master.svg
+[travis-url]:  https://travis-ci.org/Upplication/gulp-elasticbeanstalk-deploy
+[coveralls-image]: https://img.shields.io/coveralls/Upplication/gulp-elasticbeanstalk-deploy/master.svg
+[coveralls-url]: https://coveralls.io/r/Upplication/gulp-elasticbeanstalk-deploy?branch=master

@@ -34,3 +34,6 @@ node_modules
 
 # Transpiled sources
 lib
+
+# Coverage reports
+.nyc_output
