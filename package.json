@@ -4,7 +4,9 @@
   "description": "Gulp plugin for deploying into Amazon Elastic Beanstalk instance",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "build": "babel src -d lib",
+    "preversion": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -33,12 +35,24 @@
   "homepage": "https://github.com/Souler/gulp-elasticbeanstalk-deploy#readme",
   "dependencies": {
     "aws-sdk": "^2.3.2",
-    "bluebird": "^3.3.4",
     "gulp-util": "^3.0.7",
     "gulp-zip": "^3.2.0",
+    "left-pad": "^1.1.1",
     "lodash": "^4.8.2",
-    "moment": "^2.12.0",
     "plexer": "^1.0.1",
     "through2": "^2.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-runtime": "^6.12.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-stage-3": "^6.11.0",
+    "babel-register": "^6.14.0",
+    "babel-runtime": "^6.11.6",
+    "mocha": "^3.0.2",
+    "mock-aws": "^1.2.3",
+    "should": "^11.1.0",
+    "sinon": "^1.17.5"
   }
 }
