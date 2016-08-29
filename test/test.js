@@ -37,6 +37,135 @@ describe('Gulp plugin', () => {
             .returns(Promise.resolve())
     })
 
+    describe('wait4deploy', () => {
+        const wait4deploy = plugin.wait4deploy
+
+        it('should wait until Bean#describeHealth returns Status Ready', async function() {
+            const logger = spy()
+
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({ Status: 'NotReady' }))
+                .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
+                .onCall(2).returns(Promise.resolve({ Status: 'Ready' }))
+
+            await wait4deploy(bean, logger, null, 0)
+            bean.describeHealth.calledThrice.should.be.true()
+        })
+
+        it('should call logger when changes on Bean#describeHealth', async function() {
+            const logger = spy()
+
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({
+                    SomeKey: 'Some Value',
+                    Status: 'NotReady'
+                }))
+                .onCall(1).returns(Promise.resolve({
+                    SomeKey: 'Some Value',
+                    Status: 'NotReady'
+                }))
+                // Logger should be called here
+                .onCall(2).returns(Promise.resolve({
+                    SomeKey: 'Some Changed Value',
+                    Status: 'NotReady'
+                }))
+                // Logger should be called here
+                .onCall(3).returns(Promise.resolve({
+                    Status: 'Ready'
+                }))
+
+            await wait4deploy(bean, logger, null, 0)
+            bean.describeHealth.callCount.should.be.equal(4)
+            logger.calledTwice.should.be.true()
+        })
+
+        it('should not call logger when changes on Bean#describeHealth() are ResponseMetadata', async function() {
+            const logger = spy()
+
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({
+                    ResponseMetadata: '1',
+                    Status: 'NotReady'
+                }))
+                .onCall(1).returns(Promise.resolve({
+                    ResponseMetadata: '2',
+                    Status: 'NotReady'
+                }))
+                .onCall(2).returns(Promise.resolve({
+                    ResponseMetadata: '3',
+                    Status: 'NotReady'
+                }))
+                // Logger should be called here
+                .onCall(3).returns(Promise.resolve({
+                    ResponseMetadata: '4',
+                    Status: 'Ready'
+                }))
+
+            await wait4deploy(bean, logger, null, 0)
+            bean.describeHealth.callCount.should.be.equal(4)
+            logger.calledOnce.should.be.true()
+        })
+
+        it('should not call logger when changes on Bean#describeHealth() are InstancesHealth', async function() {
+            const logger = spy()
+
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({
+                    InstancesHealth: '1',
+                    Status: 'NotReady'
+                }))
+                .onCall(1).returns(Promise.resolve({
+                    InstancesHealth: '2',
+                    Status: 'NotReady'
+                }))
+                .onCall(2).returns(Promise.resolve({
+                    InstancesHealth: '3',
+                    Status: 'NotReady'
+                }))
+                // Logger should be called here
+                .onCall(3).returns(Promise.resolve({
+                    InstancesHealth: '4',
+                    Status: 'Ready'
+                }))
+
+            await wait4deploy(bean, logger, null, 0)
+            bean.describeHealth.callCount.should.be.equal(4)
+            logger.calledOnce.should.be.true()
+        })
+
+        it('should not call logger when changes on Bean#describeHealth() are RefreshedAt', async function() {
+            const logger = spy()
+
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({
+                    RefreshedAt: '1',
+                    Status: 'NotReady'
+                }))
+                .onCall(1).returns(Promise.resolve({
+                    RefreshedAt: '2',
+                    Status: 'NotReady'
+                }))
+                .onCall(2).returns(Promise.resolve({
+                    RefreshedAt: '3',
+                    Status: 'NotReady'
+                }))
+                // Logger should be called here
+                .onCall(3).returns(Promise.resolve({
+                    RefreshedAt: '4',
+                    Status: 'Ready'
+                }))
+
+            await wait4deploy(bean, logger, null, 0)
+            bean.describeHealth.callCount.should.be.equal(4)
+            logger.calledOnce.should.be.true()
+        })
+    })
+
     describe('deploy', () => {
 
         it('should return the original file', async () => {
@@ -287,6 +416,10 @@ describe('Gulp plugin', () => {
     describe('buildOptions', () => {
         const buildOptions = plugin.buildOptions
         const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))  
+
+        it('should throw if no amazon config is provided', () => {
+            (() => buildOptions({})).should.throw(/amazon/)
+        })
 
         it('should read name and version from package.json if not provided', () => {
             const opts = buildOptions({

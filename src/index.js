@@ -6,6 +6,8 @@ import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
 
+export const PLUGIN_NAME = 'gulp-elasticbeanstalk-deploy'
+
 /**
  * Retuns a promise that is resolved after the specified time has passed
  * @param  {Number} time Time to wait
@@ -58,8 +60,8 @@ export function logBeanTransition(bean, previousStatus, status) {
     return message
 }
 
-export async function wait4deploy(bean, logger, previousStatus = null) {
-    await delay(2000)
+export async function wait4deploy(bean, logger, previousStatus = null, delayMs = 2000) {
+    await delay(delayMs)
 
     let status = await bean.describeHealth();
     status = omit(status, [ 'ResponseMetadata', 'InstancesHealth', 'RefreshedAt' ])
@@ -68,7 +70,7 @@ export async function wait4deploy(bean, logger, previousStatus = null) {
         logger(bean, previousStatus, status)
 
     if (status.Status !== 'Ready')
-        return await wait4deploy(bean, logger, previousStatus)
+        return await wait4deploy(bean, logger, status, delayMs)
     else
         return status
 }
@@ -119,7 +121,7 @@ export function buildOptions(opts) {
     options.filename = versionLabel + '.zip'
 
     if (!options.amazon)
-        throw new PluginError('No amazon config provided')
+        throw new PluginError(PLUGIN_NAME, 'No amazon config provided')
 
     // if keys are provided, create new credentials, otherwise defaults will be used
     if(options.amazon.accessKeyId && options.amazon.secretAccessKey) {
