@@ -2,6 +2,9 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { omit, isEqual } from 'lodash'
 import { log, colors, PluginError } from 'gulp-util'
+import zip from 'gulp-zip'
+import through from 'through2'
+import plexer from 'plexer'
 import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
@@ -94,6 +97,7 @@ export async function deploy(opts, file, s3file, bean) {
 
     await bean.createVersion(opts.versionLabel, s3file)
     await bean.update(opts.versionLabel)
+
     if (opts.waitForDeploy)
         await wait4deploy(bean, logBeanTransition)
 
@@ -153,15 +157,16 @@ export default function gulpEbDeploy(opts) {
         region: opts.amazon.region,
         application: opts.amazon.applicationName,
         environment: opts.amazon.environmentName
-
     })
 
-    const inStream = zip(opts.filename)
-    const outStream = inStream
-    .pipe(through((file, enc, cb) => {
-        deploy(opts, file, s3file, bucket)
-        .then((result) => cb(null, result))
-        .catch(e => cb(e))
-    }))
-}
+    const zipStream = zip(opts.filename)
+    const deployStream = zipStream.pipe(
+        through.obj((file, enc, cb) => {
+            deploy(opts, file, s3file, bean)
+            .then(result => cb(null, result))
+            .catch(e => cb(e))
+        })
+    )
 
+    return plexer.obj(zipStream, deployStream)
+}
