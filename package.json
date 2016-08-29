@@ -7,7 +7,8 @@
     "test": "cross-env NODE_ENV=test nyc mocha",
     "coverage": "cross-env NODE_ENV=test nyc report --reporter=text-lcov | coveralls",
     "build": "babel src -d lib",
-    "preversion": "npm run build"
+    "preversion": "npm test",
+    "version": "npm run build"
   },
   "repository": {
     "type": "git",
