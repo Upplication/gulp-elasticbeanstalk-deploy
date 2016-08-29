@@ -6,6 +6,9 @@ import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
 
+const noop = (() => {})
+const IS_TEST = process.env['NODE_ENV'] === 'test'
+
 export const PLUGIN_NAME = 'gulp-elasticbeanstalk-deploy'
 
 /**
@@ -51,17 +54,20 @@ export function logBeanTransition(bean, previousStatus, status) {
         'Grey': colors.gray
     }
 
-    const colorPrev = _color[prevStatus.Color] || colors.grey
+    const colorPrev = _color[previousStatus.Color] || colors.grey
     const colorNew  = _color[status.Color] || colors.grey
     const message = `Enviroment ${colors.cyan(bean.environment)} transitioned` +
-                    ` from ${colorPrev(prevStatus.HealthStatus)}(${colorPrev(prevStatus.Status)})` +
+                    ` from ${colorPrev(previousStatus.HealthStatus)}(${colorPrev(previousStatus.Status)})` +
                     ` to ${colorNew(status.HealthStatus)}(${colorNew(status.Status)})`
-    log(message)
+
+    if (!IS_TEST)
+        log(message)
+
     return message
 }
 
-export async function wait4deploy(bean, logger, previousStatus = null, delayMs = 2000) {
-    await delay(delayMs)
+export async function wait4deploy(bean, logger, previousStatus = null) {
+    await delay(IS_TEST ? 0 : 2000)
 
     let status = await bean.describeHealth();
     status = omit(status, [ 'ResponseMetadata', 'InstancesHealth', 'RefreshedAt' ])
@@ -70,7 +76,7 @@ export async function wait4deploy(bean, logger, previousStatus = null, delayMs =
         logger(bean, previousStatus, status)
 
     if (status.Status !== 'Ready')
-        return await wait4deploy(bean, logger, status, delayMs)
+        return await wait4deploy(bean, logger, status)
     else
         return status
 }

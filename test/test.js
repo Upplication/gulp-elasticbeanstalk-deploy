@@ -34,7 +34,7 @@ describe('Gulp plugin', () => {
         stub(bean, 'update')
             .returns(Promise.resolve())
         stub(bean, 'describeHealth')
-            .returns(Promise.resolve())
+            .returns(Promise.resolve({ status: 'Ready' }))
     })
 
     describe('wait4deploy', () => {
@@ -49,7 +49,7 @@ describe('Gulp plugin', () => {
                 .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(2).returns(Promise.resolve({ Status: 'Ready' }))
 
-            await wait4deploy(bean, logger, null, 0)
+            await wait4deploy(bean, logger)
             bean.describeHealth.calledThrice.should.be.true()
         })
 
@@ -76,7 +76,7 @@ describe('Gulp plugin', () => {
                     Status: 'Ready'
                 }))
 
-            await wait4deploy(bean, logger, null, 0)
+            await wait4deploy(bean, logger)
             bean.describeHealth.callCount.should.be.equal(4)
             logger.calledTwice.should.be.true()
         })
@@ -104,7 +104,7 @@ describe('Gulp plugin', () => {
                     Status: 'Ready'
                 }))
 
-            await wait4deploy(bean, logger, null, 0)
+            await wait4deploy(bean, logger)
             bean.describeHealth.callCount.should.be.equal(4)
             logger.calledOnce.should.be.true()
         })
@@ -132,7 +132,7 @@ describe('Gulp plugin', () => {
                     Status: 'Ready'
                 }))
 
-            await wait4deploy(bean, logger, null, 0)
+            await wait4deploy(bean, logger)
             bean.describeHealth.callCount.should.be.equal(4)
             logger.calledOnce.should.be.true()
         })
@@ -160,7 +160,7 @@ describe('Gulp plugin', () => {
                     Status: 'Ready'
                 }))
 
-            await wait4deploy(bean, logger, null, 0)
+            await wait4deploy(bean, logger)
             bean.describeHealth.callCount.should.be.equal(4)
             logger.calledOnce.should.be.true()
         })
@@ -370,6 +370,19 @@ describe('Gulp plugin', () => {
                     .calledWithExactly(opts.versionLabel)
                     .should.be.true()
             }
+        })
+
+        it('should call wait4deploy if waitForDeploy is setted', async () => {
+            bean.describeHealth.restore()
+            stub(bean, 'describeHealth')
+                .onCall(0).returns(Promise.resolve({ Status: 'NotReady' }))
+                .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
+                .onCall(2).returns(Promise.resolve({ Status: 'Ready' }))
+            spy(plugin, 'wait4deploy')
+            opts.waitForDeploy = true
+
+            await plugin.deploy(opts, file, s3file, bean)
+            bean.describeHealth.callCount.should.be.equal(3)
         })
     })
 
