@@ -249,18 +249,22 @@ describe('Gulp plugin', () => {
             plugin.delay().should.be.a.Promise()
         })
 
-        it('should wait 100ms if no time specified', async () => {
+        it('should wait 100ms if no time specified', async function() {
+            const time = 100
+            this.slow(2.5 * time)
             const start = Date.now()
             await plugin.delay()
             const diff = Date.now() - start
-            diff.should.be.approximately(100, 5)
+            diff.should.be.approximately(time, 5)
         })
 
-        it('should wait the time specified', async () => {
+        it('should wait the time specified', async function() {
+            const time = 500
+            this.slow(2.5 * time)
             const start = Date.now()
-            await plugin.delay(500)
+            await plugin.delay(time)
             const diff = Date.now() - start
-            diff.should.be.approximately(500, 5)
+            diff.should.be.approximately(time, 5)
         })
     })
 
