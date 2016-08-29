@@ -1,13 +1,44 @@
-import { readFileSync } from 'fs'
+import { readFileSync, statSync } from 'fs'
 import should from 'should'
 import { spy, stub } from 'sinon'
 import AWS from 'aws-sdk'
+import { File } from 'gulp-util'
 import { S3File, Bean } from '../src/aws'
-import * as plugin from '../src'
+import gulpEbDeploy, * as plugin from '../src'
+import zip from 'gulp-zip'
 
 describe('Gulp plugin', () => {
 
     let file, s3file, bean, opts
+
+    beforeEach(() => {
+        // Stub AWS wrappers
+        // S3File.prototype.upload.restore()
+        stub(S3File.prototype, 'upload')
+            .returns(Promise.resolve())
+        // S3File.prototype.create.restore()
+        stub(S3File.prototype, 'create')
+            .returns(Promise.resolve())
+        // Bean.prototype.createVersion.restore()
+        stub(Bean.prototype, 'createVersion')
+            .returns(Promise.resolve())
+        // Bean.prototype.update.restore()
+        stub(Bean.prototype, 'update')
+            .returns(Promise.resolve())
+        // Bean.prototype.describeHealth.restore()
+        stub(Bean.prototype, 'describeHealth')
+            .returns(Promise.resolve({ Status: 'Ready' }))
+    })
+
+    afterEach(() => {
+        // restore stub AWS wrappers
+        S3File.prototype.upload.restore()
+        S3File.prototype.create.restore()
+        Bean.prototype.createVersion.restore()
+        Bean.prototype.update.restore()
+        Bean.prototype.describeHealth.restore()
+    })
+
     beforeEach(() => {
         file = {
             contents: 'content'
@@ -25,16 +56,6 @@ describe('Gulp plugin', () => {
             versionLabel: 'version',
             waitForDeploy: false
         }
-        stub(s3file, 'upload')
-            .returns(Promise.resolve())
-        stub(s3file, 'create')
-            .returns(Promise.resolve())
-        stub(bean, 'createVersion')
-            .returns(Promise.resolve())
-        stub(bean, 'update')
-            .returns(Promise.resolve())
-        stub(bean, 'describeHealth')
-            .returns(Promise.resolve({ status: 'Ready' }))
     })
 
     describe('wait4deploy', () => {
@@ -43,8 +64,7 @@ describe('Gulp plugin', () => {
         it('should wait until Bean#describeHealth returns Status Ready', async function() {
             const logger = spy()
 
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(2).returns(Promise.resolve({ Status: 'Ready' }))
@@ -56,8 +76,7 @@ describe('Gulp plugin', () => {
         it('should call logger when changes on Bean#describeHealth', async function() {
             const logger = spy()
 
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({
                     SomeKey: 'Some Value',
                     Status: 'NotReady'
@@ -84,8 +103,7 @@ describe('Gulp plugin', () => {
         it('should not call logger when changes on Bean#describeHealth() are ResponseMetadata', async function() {
             const logger = spy()
 
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({
                     ResponseMetadata: '1',
                     Status: 'NotReady'
@@ -112,8 +130,7 @@ describe('Gulp plugin', () => {
         it('should not call logger when changes on Bean#describeHealth() are InstancesHealth', async function() {
             const logger = spy()
 
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({
                     InstancesHealth: '1',
                     Status: 'NotReady'
@@ -140,8 +157,7 @@ describe('Gulp plugin', () => {
         it('should not call logger when changes on Bean#describeHealth() are RefreshedAt', async function() {
             const logger = spy()
 
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({
                     RefreshedAt: '1',
                     Status: 'NotReady'
@@ -202,8 +218,7 @@ describe('Gulp plugin', () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
-            s3file.upload.restore()
-            stub(s3file, 'upload')
+            s3file.upload
                 .onCall(0).returns(Promise.reject(error))
                 .onCall(1).returns(Promise.resolve())
 
@@ -231,8 +246,7 @@ describe('Gulp plugin', () => {
 
         it('should fail if the upload fails with an error different from NoSuchBucket', async () => {
 
-            s3file.upload.restore()
-            stub(s3file, 'upload')
+            s3file.upload
                 .returns(Promise.reject(new Error()))
 
             try {
@@ -254,8 +268,7 @@ describe('Gulp plugin', () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
-            s3file.upload.restore()
-            stub(s3file, 'upload')
+            s3file.upload
                 .onCall(0).returns(Promise.reject(error))
                 .onCall(1).returns(Promise.reject(new Error()))
 
@@ -279,11 +292,9 @@ describe('Gulp plugin', () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
-            s3file.upload.restore()
-            stub(s3file, 'upload')
+            s3file.upload
                 .onCall(0).returns(Promise.reject(error))
-            s3file.create.restore()
-            stub(s3file, 'create')
+            s3file.create
                 .onCall(0).returns(Promise.reject(new Error()))
 
             try {
@@ -306,8 +317,7 @@ describe('Gulp plugin', () => {
 
         it('should fail if the application version creation fails', async () => {
 
-            bean.createVersion.restore()
-            stub(bean, 'createVersion')
+            bean.createVersion
                 .onCall(0).returns(Promise.reject(new Error()))
 
             try {
@@ -338,8 +348,7 @@ describe('Gulp plugin', () => {
 
         it('should fail if the environment update fails', async () => {
 
-            bean.update.restore()
-            stub(bean, 'update')
+            bean.update
                 .onCall(0).returns(Promise.reject(new Error()))
 
             try {
@@ -373,8 +382,7 @@ describe('Gulp plugin', () => {
         })
 
         it('should call wait4deploy if waitForDeploy is setted', async () => {
-            bean.describeHealth.restore()
-            stub(bean, 'describeHealth')
+            bean.describeHealth
                 .onCall(0).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(2).returns(Promise.resolve({ Status: 'Ready' }))
@@ -510,6 +518,49 @@ describe('Gulp plugin', () => {
             should(AWS.config.credentials).be.null()
             // Restore
             AWS.Credentials.restore()
+        })
+    })
+
+    describe('gulpEbDeploy', () => {
+        let fakeFile = null
+
+        before(() => {
+            fakeFile = new File({
+                contents: new Buffer('Hello Mah Friend'),
+                cwd: __dirname,
+                base: __dirname + '/test',
+                path: __dirname + '/test/main.js',
+                contents: new Buffer('Hello world')
+            })
+        })
+
+        it('it should emit a single zip file', (done) => {
+            try{
+
+                const deployer = gulpEbDeploy({
+                    amazon: {
+                        region: 'euwest',
+                        bucket: 'bucket#1',
+                        applicationName: 'application',
+                        environmentName: 'environment'
+                    }
+                })
+
+                let files = []
+                deployer.on('data', (file) => {
+                    files.push(file)
+                })
+
+                deployer.on('end', () => {
+                    files.length.should.be.equal(1)
+                    const zipfile = files[0]
+                    zipfile.basename.should.match(/\.zip$/)
+                    done()
+                })
+
+                deployer.write(fakeFile)
+                deployer.end()
+            } catch (e) { done(e) }
         })
     })
 })
