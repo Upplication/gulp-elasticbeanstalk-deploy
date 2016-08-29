@@ -1,4 +1,24 @@
 language: node_js
 env:
   - NODE_ENV=test
+node_js:
+  - "0.10"
+  - "0.12"
+  - "1.8"
+  - "2.5"
+  - "3.3"
+  - "4.4"
+  - "5.11"
+  - "6.2"
+sudo: false
+cache:
+  directories:
+    - node_modules
+before_install:
+  # Remove all non-test dependencies
+  - "npm rm --save-dev connect-redis"
+
+  # Update Node.js modules
+  - "test ! -d node_modules || npm prune"
+  - "test ! -d node_modules || npm rebuild"
 after_success: npm run coverage
