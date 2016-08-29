@@ -1,5 +1,7 @@
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { omit, isEqual } from 'lodash'
-import { log, colors } from 'gulp-util'
+import { log, colors, PluginError } from 'gulp-util'
 import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
@@ -92,21 +94,42 @@ export async function deploy(opts, file, s3file, bean) {
 
 export function buildOptions(opts) {
 
-    // TODO: Check for errors
-    opts.versionLabel = opts.version
-    if (opts.timestamp !== false)
-        opts.versionLabel += '-' + currentDate()
-    opts.filename = opts.versionLabel + '.zip'
+    const options = Object.assign({}, {
+        name: undefined,
+        version: undefined,
+        timestamp: true,
+        waitForDeploy: true,
+        amazon: undefined
+    }, opts)
+
+    // If no name or no version provided, try to read it from package.json
+    if (!options.name || !options.version) {
+        const packageJsonStr = readFileSync('./package.json', 'utf8')
+        const packageJson = JSON.parse(packageJsonStr)
+        if (!options.name)
+            options.name = packageJson.name
+        if (!options.version)
+            options.version = packageJson.version
+    }
+
+    // Build the filename
+    let versionLabel = options.version
+    if (options.timestamp !== false)
+        versionLabel += '-' + currentDate()
+    options.filename = versionLabel + '.zip'
+
+    if (!options.amazon)
+        throw new PluginError('No amazon config provided')
 
     // if keys are provided, create new credentials, otherwise defaults will be used
-    if(opts.amazon.accessKeyId && opts.amazon.secretAccessKey) {
+    if(options.amazon.accessKeyId && options.amazon.secretAccessKey) {
         AWS.config.credentials = new AWS.Credentials({
             accessKeyId: opts.amazon.accessKeyId,
             secretAccessKey: opts.amazon.secretAccessKey
         })
     }
 
-    return opts
+    return options
 }
 
 export default function gulpEbDeploy(opts) {
@@ -115,7 +138,7 @@ export default function gulpEbDeploy(opts) {
 
     const s3file =  new S3File({
         bucket: opts.amazon.bucket,
-        path: path.join(opts.name, opts.filename)
+        path: join(opts.name, opts.filename)
     })
 
     const bean = new Bean({
