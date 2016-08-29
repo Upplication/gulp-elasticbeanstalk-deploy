@@ -1,10 +1,10 @@
 # gulp-elasticbeanstalk-deploy
 
-    Gulp plugin for deploying a set of files directly into an Amazon Elasticbeanstlak Instance
-
   [![NPM Version][npm-image]][npm-url]
   [![Build Status][travis-image]][travis-url]
   [![Test Coverage][coveralls-image]][coveralls-url]
+
+Gulp plugin for deploying a set of files directly into an Amazon Elasticbeanstlak Instance
 
 ## Usage
 ```js
@@ -37,8 +37,8 @@ gulp.task('deploy', function() {
 
 The code above would work as follows
 * Take the files sepcified by `gulp.src` and zip them on a file named `{ version }-{ timestamp }.zip` (i.e: `1.0.0-2016.04.08_13.26.32.zip`)
-* Check amazon credentials (`accessKeyId`, `secretAccessKey`). If not provided in the `amazon` obejct, default values will be used from AWS CLI configuration.
-* Try to create the bucket specified by `amazon.bucket`. If you already own it, continues; otherwise fails
+* If amazon credentials (`accessKeyId`, `secretAccessKey`) are provided in the `amazon` object set them on the `AWS.config.credentials`. If not provided, the default values from AWS CLI configuration will be used.
+* Try to upload the zipped file to the bucket specified by `amazon.bucket`. If it fails because the bucket doesn't exist, try to create the bucket and then try to upload the zipped file again
 * Uploads the ziped files to the bucket on the path `{{ name }}/{{ filename }}` (i.e: `my-application/1.0.0-2016.04.08_13.26.32.zip`)
 * Creates a new version on the Application specified by `applicationName` with VersionLabel `{ version }-{ timestamp }` (i.e: `1.0.0-2016.04.08_13.26.32`)
 * Updates the Environment specified by `environmentName` by settings its application version to the new just uploaded
