@@ -493,6 +493,23 @@ describe('Gulp plugin', () => {
             opts.timestamp.should.be.false()
         })
 
+        it('should have a versionLabel and a filename with timestamp by default', () => {
+            const opts = buildOptions({
+                amazon: {}
+            })
+            opts.versionLabel.should.match(/^[0-9\.]{5,}\-[0-9]{4}\.[0-9]{2}\.[0-9]{2}_[0-9]{2}\.[0-9]{2}\.[0-9]{2}$/)
+            opts.filename.should.be.equal(opts.versionLabel + '.zip')
+        })
+
+        it('should have versionLabel and filename without timestamp if timestamp is set false', () => {
+            const opts = buildOptions({
+                amazon: {},
+                timestamp: false
+            })
+            opts.versionLabel.should.match(/^[0-9\.]{5,}$/)
+            opts.filename.should.be.equal(opts.versionLabel + '.zip')
+        })
+
         it('should update AWS.config.credentials with the provided values', () => {
             spy(AWS, 'Credentials')
             const opts = buildOptions({

@@ -128,6 +128,7 @@ export function buildOptions(opts) {
     let versionLabel = options.version
     if (options.timestamp !== false)
         versionLabel += '-' + currentDate()
+    options.versionLabel = versionLabel
     options.filename = versionLabel + '.zip'
 
     if (!options.amazon)
