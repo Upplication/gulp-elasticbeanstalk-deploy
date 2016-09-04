@@ -4,7 +4,8 @@ import { spy, stub } from 'sinon'
 import AWS from 'aws-sdk'
 import { File } from 'gulp-util'
 import { S3File, Bean } from '../src/aws'
-import gulpEbDeploy, * as plugin from '../src'
+import * as plugin from '../src/plugin'
+import gulpEbDeploy from '../src'
 import zip from 'gulp-zip'
 
 describe('Gulp plugin', () => {
