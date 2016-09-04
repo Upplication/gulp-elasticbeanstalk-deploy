@@ -1,6 +1,6 @@
 {
   "name": "gulp-elasticbeanstalk-deploy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Gulp plugin for deploying into Amazon Elastic Beanstalk instance",
   "main": "lib/index.js",
   "scripts": {
