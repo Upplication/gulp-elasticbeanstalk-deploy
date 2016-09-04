@@ -19,13 +19,13 @@ gulp.task('deploy', function() {
         'package.json'
     ], { base: './' })
     .pipe(gulpEbDeploy({
-        name: 'my-application',
-        version: '1.0.0',
+        name: 'my-application', // optional: If not set, the name from package.json will be used
+        version: '1.0.0', // optional: If not set, the version from package.json will be used
         timestamp: true, // optional: If set to false, the zip will not have a timestamp
-        waitForDeploy: true, // optional: if set to false the task will end as soon as it is deploying
+        waitForDeploy: true, // optional: if set to false the task will end as soon as it starts deploying
         amazon: {
-            accessKeyId: "< your access key (fyi, the 'short' one) >" //optional,
-            secretAccessKey: "< your secret access key (fyi, the 'long' one) >" //optional,
+            accessKeyId: "< your access key (fyi, the 'short' one) >" // optional,
+            secretAccessKey: "< your secret access key (fyi, the 'long' one) >" // optional,
             region: 'eu-west-1',
             bucket: 'elasticbeanstalk-apps',
             applicationName: 'MyApplication',
@@ -37,7 +37,7 @@ gulp.task('deploy', function() {
 
 The code above would work as follows
 * Take the files sepcified by `gulp.src` and zip them on a file named `{ version }-{ timestamp }.zip` (i.e: `1.0.0-2016.04.08_13.26.32.zip`)
-* If amazon credentials (`accessKeyId`, `secretAccessKey`) are provided in the `amazon` object set them on the `AWS.config.credentials`. If not provided, the default values from AWS CLI configuration will be used.
+* If amazon credentials (`accessKeyId`, `secretAccessKey`) are provided in the `amazon` object, set them on the `AWS.config.credentials`. If not provided, the default values from AWS CLI configuration will be used.
 * Try to upload the zipped file to the bucket specified by `amazon.bucket`. If it fails because the bucket doesn't exist, try to create the bucket and then try to upload the zipped file again
 * Uploads the ziped files to the bucket on the path `{{ name }}/{{ filename }}` (i.e: `my-application/1.0.0-2016.04.08_13.26.32.zip`)
 * Creates a new version on the Application specified by `applicationName` with VersionLabel `{ version }-{ timestamp }` (i.e: `1.0.0-2016.04.08_13.26.32`)
