@@ -15,9 +15,6 @@ cache:
   directories:
     - node_modules
 before_install:
-  # Remove all non-test dependencies
-  - "npm rm --save-dev connect-redis"
-
   # Update Node.js modules
   - "test ! -d node_modules || npm prune"
   - "test ! -d node_modules || npm rebuild"
