@@ -181,6 +181,34 @@ describe('Gulp plugin', () => {
             bean.describeHealth.callCount.should.be.equal(4)
             logger.calledOnce.should.be.true()
         })
+
+        it('should not throw when environment doesn\'t support enhanced health', async function() {
+            const logger = spy()
+
+            bean.describeHealth
+                .returns(Promise.reject(Error('DescribeEnvironmentHealth is not supported')))
+
+            try {
+                await wait4deploy(bean, logger)
+            } catch(e) {
+                should.fail(null, null, 'wait4deploy threw when it should only have logged')
+            }
+        })
+
+        it('should throw any error caused by AWS that is not a DescribeEnvironmentHealth error', async function() {
+            const logger = spy()
+
+            const err = Error('Other error ocurred')
+            bean.describeHealth
+                .returns(Promise.reject(err))
+
+            try {
+                await wait4deploy(bean, logger)
+                should.fail(null, null, 'wait4deploy didn\'t throw error as expected')
+            } catch(e) {
+                e.should.be.eql(err)
+            }
+        })
     })
 
     describe('deploy', () => {

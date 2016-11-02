@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { omit, isEqual } from 'lodash'
-import { log, colors, PluginError } from 'gulp-util'
+import { log as gulpLog, colors, PluginError } from 'gulp-util'
 import zip from 'gulp-zip'
 import through from 'through2'
 import plexer from 'plexer'
@@ -9,8 +9,8 @@ import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
 
-const noop = (() => {})
 const IS_TEST = process.env['NODE_ENV'] === 'test'
+const log = IS_TEST ? () => {} : gulpLog
 
 export const PLUGIN_NAME = 'gulp-elasticbeanstalk-deploy'
 
@@ -63,8 +63,7 @@ export function logBeanTransition(bean, previousStatus, status) {
                     ` from ${colorPrev(previousStatus.HealthStatus)}(${colorPrev(previousStatus.Status)})` +
                     ` to ${colorNew(status.HealthStatus)}(${colorNew(status.Status)})`
 
-    if (!IS_TEST)
-        log(message)
+    log(message)
 
     return message
 }
@@ -72,7 +71,23 @@ export function logBeanTransition(bean, previousStatus, status) {
 export async function wait4deploy(bean, logger, previousStatus = null) {
     await delay(IS_TEST ? 0 : 2000)
 
-    let status = await bean.describeHealth();
+    let status;
+
+    try {
+        status = await bean.describeHealth()
+    } catch (e) {
+        if (e.message === 'DescribeEnvironmentHealth is not supported') {
+            const msg = `Current EB environment doesn\'t support Enhanced health
+            reporting. Instance is currently transitioning, but can't wait for it
+            to finish`
+
+            log(colors.yellow(msg))
+            return
+        }
+        // Bubble up any other error
+        throw e
+    }
+
     status = omit(status, [ 'ResponseMetadata', 'InstancesHealth', 'RefreshedAt' ])
 
     if (previousStatus && !isEqual(previousStatus, status))
