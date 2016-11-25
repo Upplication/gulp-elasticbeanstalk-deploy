@@ -23,7 +23,8 @@ export class S3File {
             params: {
                 Bucket: bucket,
                 Key: path
-            }
+            },
+			signatureVersion: 'v4'            
         })
 
         /**
