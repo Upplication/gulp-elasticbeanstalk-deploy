@@ -24,8 +24,9 @@ gulp.task('deploy', function() {
         timestamp: true, // optional: If set to false, the zip will not have a timestamp
         waitForDeploy: true, // optional: if set to false the task will end as soon as it starts deploying
         amazon: {
-            accessKeyId: "< your access key (fyi, the 'short' one) >" // optional,
-            secretAccessKey: "< your secret access key (fyi, the 'long' one) >" // optional,
+            accessKeyId: "< your access key (fyi, the 'short' one) >", // optional
+            secretAccessKey: "< your secret access key (fyi, the 'long' one) >", // optional
+            signatureVersion: "v4", // optional
             region: 'eu-west-1',
             bucket: 'elasticbeanstalk-apps',
             applicationName: 'MyApplication',

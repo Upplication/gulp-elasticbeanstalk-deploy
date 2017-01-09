@@ -153,7 +153,8 @@ export function buildOptions(opts) {
     if(options.amazon.accessKeyId && options.amazon.secretAccessKey) {
         AWS.config.credentials = new AWS.Credentials({
             accessKeyId: opts.amazon.accessKeyId,
-            secretAccessKey: opts.amazon.secretAccessKey
+            secretAccessKey: opts.amazon.secretAccessKey,
+            signatureVersion: options.amazon.signatureVersion || 'v4'
         })
     }
 
