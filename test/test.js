@@ -64,7 +64,7 @@ describe('Gulp plugin', () => {
     describe('wait4deploy', () => {
         const wait4deploy = plugin.wait4deploy
 
-        it('should wait until Bean#describeHealth returns Status Ready', async function() {
+        it('waits until Bean#describeHealth returns Status Ready', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -76,7 +76,7 @@ describe('Gulp plugin', () => {
             bean.describeHealth.calledThrice.should.be.true()
         })
 
-        it('should call logger when changes on Bean#describeHealth', async function() {
+        it('calls logger when changes on Bean#describeHealth', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -103,7 +103,7 @@ describe('Gulp plugin', () => {
             logger.calledTwice.should.be.true()
         })
 
-        it('should not call logger when changes on Bean#describeHealth() are ResponseMetadata', async function() {
+        it('does not call logger when changes on Bean#describeHealth() are ResponseMetadata', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -130,7 +130,7 @@ describe('Gulp plugin', () => {
             logger.calledOnce.should.be.true()
         })
 
-        it('should not call logger when changes on Bean#describeHealth() are InstancesHealth', async function() {
+        it('does not call logger when changes on Bean#describeHealth() are InstancesHealth', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -157,7 +157,7 @@ describe('Gulp plugin', () => {
             logger.calledOnce.should.be.true()
         })
 
-        it('should not call logger when changes on Bean#describeHealth() are RefreshedAt', async function() {
+        it('does not call logger when changes on Bean#describeHealth() are RefreshedAt', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -184,7 +184,7 @@ describe('Gulp plugin', () => {
             logger.calledOnce.should.be.true()
         })
 
-        it('should not throw when environment doesn\'t support enhanced health', async function() {
+        it('does not throw when environment does not support enhanced health', async function() {
             const logger = spy()
 
             bean.describeHealth
@@ -197,7 +197,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should throw any error caused by AWS that is not a DescribeEnvironmentHealth error', async function() {
+        it('throws any error caused by AWS that is not a DescribeEnvironmentHealth error', async function() {
             const logger = spy()
 
             const err = Error('Other error ocurred')
@@ -214,12 +214,12 @@ describe('Gulp plugin', () => {
     })
 
     describe('deploy', () => {
-        it('should return the original file', async () => {
+        it('returns the original file', async () => {
             const f = await plugin.deploy(opts, file, s3file, bean)
             f.should.be.equal(file)
         })
 
-        it('should upload the file, create version and update', async () => {
+        it('uploads the file, create version and update', async () => {
             await plugin.deploy(opts, file, s3file, bean)
 
             s3file.upload
@@ -242,7 +242,7 @@ describe('Gulp plugin', () => {
                 .should.be.true()
         })
 
-        it('should create the bucket if the upload fails with NoSuchBucket, upload, create version and update', async () => {
+        it('creates the bucket if the upload fails with NoSuchBucket, uploads, creates version and updates', async () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -272,7 +272,7 @@ describe('Gulp plugin', () => {
                 .should.be.true()
         })
 
-        it('should fail if the upload fails with an error different from NoSuchBucket', async () => {
+        it('fails if the upload fails with an error different from NoSuchBucket', async () => {
             s3file.upload
                 .returns(Promise.reject(new Error()))
 
@@ -290,7 +290,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should fail if the upload fails again after getting NoSuchBucket', async () => {
+        it('fails if the upload fails again after getting NoSuchBucket', async () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -313,7 +313,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should fail if the bucket creation fails after getting NoSuchBucket', async () => {
+        it('fails if the bucket creation fails after getting NoSuchBucket', async () => {
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -340,7 +340,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should fail if the application version creation fails', async () => {
+        it('fails if the application version creation fails', async () => {
             bean.createVersion
                 .onCall(0).returns(Promise.reject(new Error()))
 
@@ -370,7 +370,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should fail if the environment update fails', async () => {
+        it('fails if the environment update fails', async () => {
             bean.update
                 .onCall(0).returns(Promise.reject(new Error()))
 
@@ -404,7 +404,7 @@ describe('Gulp plugin', () => {
             }
         })
 
-        it('should call wait4deploy if waitForDeploy is setted', async () => {
+        it('calls wait4deploy if waitForDeploy is setted', async () => {
             bean.describeHealth
                 .onCall(0).returns(Promise.resolve({ Status: 'NotReady' }))
                 .onCall(1).returns(Promise.resolve({ Status: 'NotReady' }))
@@ -418,11 +418,11 @@ describe('Gulp plugin', () => {
     })
 
     describe('delay', () => {
-        it('should return a promise', () => {
+        it('returns a promise', () => {
             plugin.delay().should.be.a.Promise()
         })
 
-        it('should wait 100ms if no time specified', async function() {
+        it('waits 100ms if no time specified', async function() {
             const time = 100
             this.slow(2.5 * time)
             const start = Date.now()
@@ -431,7 +431,7 @@ describe('Gulp plugin', () => {
             diff.should.be.approximately(time, 5)
         })
 
-        it('should wait the time specified', async function() {
+        it('waits the time specified', async function() {
             const time = 500
             this.slow(2.5 * time)
             const start = Date.now()
@@ -442,7 +442,7 @@ describe('Gulp plugin', () => {
     })
 
     describe('currentDate', () => {
-        it('should return current date in format YYYY.MM.DD_HH.mm.ss', () => {
+        it('returns current date in format YYYY.MM.DD_HH.mm.ss', () => {
             const dateStr = plugin.currentDate()
             const now = new Date()
             const valRgx = /^([0-9]{4})\.([0-9]{2})\.([0-9]{2})_([0-9]{2})\.([0-9]{2})\.([0-9]{2})$/
@@ -461,11 +461,11 @@ describe('Gulp plugin', () => {
         const buildOptions = plugin.buildOptions
         const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))
 
-        it('should throw if no amazon config is provided', () => {
+        it('throws if no amazon config is provided', () => {
             (() => buildOptions({})).should.throw(/amazon/)
         })
 
-        it('should read name and version from package.json if not provided', () => {
+        it('reads name and version from package.json if not provided', () => {
             const opts = buildOptions({
                 amazon: {}
             })
@@ -473,7 +473,7 @@ describe('Gulp plugin', () => {
             opts.version.should.be.equal(packageJson.version)
         })
 
-        it('should override name and version from package.json if provided', () => {
+        it('overrides name and version from package.json if provided', () => {
             const opts = buildOptions({
                 name: 'my-application',
                 version: '0.0.1-beta',
@@ -486,14 +486,14 @@ describe('Gulp plugin', () => {
             opts.version.should.be.not.equal(packageJson.version)
         })
 
-        it('should have waitForDeploy true by default', () => {
+        it('has waitForDeploy true by default', () => {
             const opts = buildOptions({
                 amazon: {}
             })
             opts.waitForDeploy.should.be.true()
         })
 
-        it('should override waitForDeploy default value', () => {
+        it('overrides waitForDeploy default value', () => {
             const opts = buildOptions({
                 waitForDeploy: false,
                 amazon: {}
@@ -501,14 +501,14 @@ describe('Gulp plugin', () => {
             opts.waitForDeploy.should.be.false()
         })
 
-        it('should have timestamp true by default', () => {
+        it('has timestamp true by default', () => {
             const opts = buildOptions({
                 amazon: {}
             })
             opts.timestamp.should.be.true()
         })
 
-        it('should override timestamp default value', () => {
+        it('overrides timestamp default value', () => {
             const opts = buildOptions({
                 timestamp: false,
                 amazon: {}
@@ -516,7 +516,7 @@ describe('Gulp plugin', () => {
             opts.timestamp.should.be.false()
         })
 
-        it('should have a versionLabel and a filename with timestamp by default', () => {
+        it('has a versionLabel and a filename with timestamp by default', () => {
             const opts = buildOptions({
                 amazon: {}
             })
@@ -524,7 +524,7 @@ describe('Gulp plugin', () => {
             opts.filename.should.be.equal(opts.versionLabel + '.zip')
         })
 
-        it('should have versionLabel and filename without timestamp if timestamp is set false', () => {
+        it('has versionLabel and filename without timestamp if timestamp is set false', () => {
             const opts = buildOptions({
                 amazon: {},
                 timestamp: false
@@ -533,7 +533,13 @@ describe('Gulp plugin', () => {
             opts.filename.should.be.equal(opts.versionLabel + '.zip')
         })
 
-        it('should update AWS.config.credentials with the provided values', () => {
+        afterEach(() => {
+            if (AWS.Credentials.restore) {
+                AWS.Credentials.restore()
+            }
+            AWS.config.credentials = null
+        })
+        it('updates AWS.config.credentials with the provided values', () => {
             spy(AWS, 'Credentials')
             buildOptions({
                 amazon: {
@@ -544,20 +550,33 @@ describe('Gulp plugin', () => {
             AWS.Credentials.calledOnce.should.be.true()
             AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
             AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
-            // Restore
-            AWS.Credentials.restore()
-            AWS.config.credentials = null
         })
 
-        it('should not update AWS.config.credentials if no access parameters were specified', () => {
+        it('sets AWS.config with signatureVersion v4 by default', () => {
+            spy(AWS, 'Credentials')
+            buildOptions({
+                amazon: {}
+            })
+            AWS.config.signatureVersion.should.be.equal('v4')
+        })
+
+        it('allows to set a signatureVersion for AWS.config', () => {
+            spy(AWS, 'Credentials')
+            buildOptions({
+                amazon: {
+                    signatureVersion: 'v2'
+                }
+            })
+            AWS.config.signatureVersion.should.be.equal('v2')
+        })
+
+        it('does not update AWS.config.credentials if no access parameters were specified', () => {
             spy(AWS, 'Credentials')
             buildOptions({
                 amazon: {}
             })
             AWS.Credentials.called.should.be.false()
             should(AWS.config.credentials).be.null()
-            // Restore
-            AWS.Credentials.restore()
         })
     })
 
@@ -574,7 +593,7 @@ describe('Gulp plugin', () => {
             })
         })
 
-        it('it should emit a single zip file', done => {
+        it('emits a single zip file', done => {
             try {
                 const deployer = gulpEbDeploy({
                     amazon: {

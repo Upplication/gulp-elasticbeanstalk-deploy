@@ -156,7 +156,7 @@ export async function deploy(opts, file, s3file, bean) {
  * secretAccessKey, both will be added as `AWS.config.credentials`.
  *
  * If the resulting object amazon property contains signatureVersion, it will
- * be added to `AWS.config.credentials`, ese v4 will be used as signatureVersion
+ * be added to `AWS.config`, ese v4 will be used as signatureVersion
  *
  * @param  {Object} opts
  * @return {Object}
@@ -192,13 +192,15 @@ export function buildOptions(opts) {
         throw new PluginError(PLUGIN_NAME, 'No amazon config provided')
 
     // if keys are provided, create new credentials, otherwise defaults will be used
-    if(options.amazon.accessKeyId && options.amazon.secretAccessKey) {
+    if (options.amazon.accessKeyId && options.amazon.secretAccessKey) {
         AWS.config.credentials = new AWS.Credentials({
             accessKeyId: opts.amazon.accessKeyId,
-            secretAccessKey: opts.amazon.secretAccessKey,
-            signatureVersion: opts.amazon.signatureVersion || 'v4'
+            secretAccessKey: opts.amazon.secretAccessKey
         })
     }
+
+    // Set v4 by default
+    AWS.config.signatureVersion = options.amazon.signatureVersion || 'v4'
 
     return options
 }
