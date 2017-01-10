@@ -63,6 +63,9 @@
     "should": "^11.1.0",
     "sinon": "^1.17.5"
   },
+  "engines": {
+    "node": ">=4"
+  },
   "nyc": {
     "sourceMap": false,
     "instrument": false
