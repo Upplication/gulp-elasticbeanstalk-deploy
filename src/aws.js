@@ -1,11 +1,13 @@
 import { S3, ElasticBeanstalk } from 'aws-sdk'
 
+/**
+ * Models an file in an S3 bucket. This is a simpler version around a full
+ * `AWS.S3` instance focused on uploads.
+ *
+ * @class
+ */
 export class S3File {
-
     /**
-     * Models an file in an S3 bucket. This is a simpler version around a full
-     * `AWS.S3` instance focused on uploads.
-     *
      * @constructor S3Bucket
      * @param  {String} bucket  Name of the bucket where the file is stored
      * @param  {String} path    Path of the file inside the bucket
@@ -13,7 +15,6 @@ export class S3File {
      * @see [AWS.S3]{@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html}
      */
     constructor({ bucket, path }) {
-
         if (!bucket || typeof bucket !== 'string')
             throw new TypeError('Bucket Id must be a valid string')
         if (!path || typeof path !== 'string')
@@ -78,8 +79,10 @@ export class S3File {
      * Mainly for testing propuses.
      *
      * @private
+     * @method S3File#prepareUpload
      * @async
-     * @return {AWS.S3#upload()} [description]
+     * @param  {external:vinyl.File} file - The file to upload
+     * @return {AWS.S3#upload}
      */
     prepareUpload(file) {
         return this.s3bucket.upload({ Body: file.contents })
@@ -106,13 +109,16 @@ export class S3File {
     }
 }
 
+/**
+ * Models a combination of ElasticBeanstalk Application + Environment.
+ * This is a simpler version around a full `AWS.ElasticBeanstalk` instance
+ * focused on deployments.
+ *
+ * @class
+ */
 export class Bean {
 
     /**
-     * Models a combination of ElasticBeanstalk Application + Environment.
-     * This is a simpler version around a full `AWS.ElasticBeanstalk` instance
-     * focused on deployments.
-     *
      * @constructor Bean
      * @param  {String} region  Identifier of the region where the elastic
      *                          beanstalk instance exists.
@@ -122,7 +128,6 @@ export class Bean {
      * @see [AWS.ElasticBeanstalk]{@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ElasticBeanstalk.html}
      */
     constructor({ region, application, environment }) {
-
         if (!region || typeof region !== 'string')
             throw new TypeError('region must be a valid string')
         if (!application || typeof application !== 'string')
@@ -138,7 +143,7 @@ export class Bean {
          */
         Object.defineProperty(this, 'application', {
             value: application,
-            enumerable: true,
+            enumerable: true
         })
 
         /**
@@ -147,7 +152,7 @@ export class Bean {
          */
         Object.defineProperty(this, 'environment', {
             value: environment,
-            enumerable: true,
+            enumerable: true
         })
 
         /**
@@ -157,7 +162,7 @@ export class Bean {
          */
         Object.defineProperty(this, 'bean', {
             value: bean,
-            enumerable: false,
+            enumerable: false
         })
     }
 
@@ -170,7 +175,7 @@ export class Bean {
      * @param  {S3File} file    File containing the zipped source code of the
      *                          version stored on S3
      * @return {Promise}        Resolved once the action has completed
-     * 
+     *
      * @see [AWS.ElasticBeanstalk#createVersion]{@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ElasticBeanstalk.html#createVersion-property}
      */
     async createVersion(version, file) {
@@ -198,7 +203,7 @@ export class Bean {
      * @method Bean#update
      * @param  {String} version Version label of the version to deploy on the current bean environment
      * @return {Promise}        Resolved once the action has completed
-     * 
+     *
      * @see [AWS.ElasticBeanstalk#updateEnvironment]{@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ElasticBeanstalk.html#updateEnvironment-property}
      */
     async update(version) {

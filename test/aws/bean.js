@@ -1,19 +1,17 @@
+/* eslint require-jsdoc: "off", new-cap: "off", no-invalid-this: "off" */
 import 'should'
 import { stub } from 'sinon'
 import { ElasticBeanstalk } from 'aws-sdk'
 import { Bean } from '../../src/aws'
 
 describe('Bean', () => {
-
     describe('constructor', () => {
         it('should throw if region is not valid', () => {
-
             const build = function(v) {
                 return () => new Bean({
                     region: v
                 })
             }
-
             // null
             build(null).should.throw(/region/i)
             // undefined
@@ -27,14 +25,12 @@ describe('Bean', () => {
         })
 
         it('should throw if application is not valid', () => {
-
             const build = function(v) {
                 return () => new Bean({
                     region: 'region',
                     application: v
                 })
             }
-
             // null
             build(null).should.throw(/application/i)
             // undefined
@@ -48,7 +44,6 @@ describe('Bean', () => {
         })
 
         it('should throw if environment is not valid', () => {
-
             const build = function(v) {
                 return () => new Bean({
                     region: 'region',
@@ -56,7 +51,6 @@ describe('Bean', () => {
                     environment: v
                 })
             }
-
             // null
             build(null).should.throw(/environment/i)
             // undefined
@@ -97,8 +91,9 @@ describe('Bean', () => {
     })
 
     describe('#createVersion', () => {
-
-        let bean, version, mockFile;
+        let bean
+        let version
+        let mockFile
 
         beforeEach(() => {
             bean = new Bean({
@@ -142,8 +137,8 @@ describe('Bean', () => {
     })
 
     describe('#update', () => {
-
-        let bean, version;
+        let bean
+        let version
 
         beforeEach(() => {
             bean = new Bean({
@@ -182,8 +177,7 @@ describe('Bean', () => {
     })
 
     describe('#describeHealth', () => {
-
-        let bean;
+        let bean
 
         beforeEach(() => {
             bean = new Bean({

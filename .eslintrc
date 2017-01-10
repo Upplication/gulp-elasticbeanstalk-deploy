@@ -1,0 +1,15 @@
+{
+  "extends": "google",
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "rules": {
+    "semi": [ "error", "never" ],
+    "object-curly-spacing": [ "error", "always" ],
+    "array-bracket-spacing": [ "error", "always" ],
+    "arrow-parens": [ "error", "as-needed" ],
+    "max-len": [ "off" ],
+    "comma-dangle": [ "error", "never" ]
+  }
+}

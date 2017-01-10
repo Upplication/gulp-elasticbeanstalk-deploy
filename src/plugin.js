@@ -29,12 +29,12 @@ export function delay(time = 100) {
  */
 export function currentDate() {
     const date = new Date()
-      ,   YYYY = pad(date.getFullYear())
-      ,   MM = pad(date.getMonth(), 2, 0)
-      ,   DD = pad(date.getDate(), 2, 0)
-      ,   HH = pad(date.getHours(), 2, 0)
-      ,   mm = pad(date.getMinutes(), 2, 0)
-      ,   ss = pad(date.getSeconds(), 2, 0)
+    const YYYY = pad(date.getFullYear())
+    const MM = pad(date.getMonth(), 2, 0)
+    const DD = pad(date.getDate(), 2, 0)
+    const HH = pad(date.getHours(), 2, 0)
+    const mm = pad(date.getMinutes(), 2, 0)
+    const ss = pad(date.getSeconds(), 2, 0)
     return `${YYYY}.${MM}.${DD}_${HH}.${mm}.${ss}`
 }
 
@@ -58,20 +58,31 @@ export function logBeanTransition(bean, previousStatus, status) {
     }
 
     const colorPrev = _color[previousStatus.Color] || colors.grey
-    const colorNew  = _color[status.Color] || colors.grey
-    const message = `Enviroment ${colors.cyan(bean.environment)} transitioned` +
-                    ` from ${colorPrev(previousStatus.HealthStatus)}(${colorPrev(previousStatus.Status)})` +
-                    ` to ${colorNew(status.HealthStatus)}(${colorNew(status.Status)})`
+    const colorNew = _color[status.Color] || colors.grey
+    const message = [
+        `Enviroment ${colors.cyan(bean.environment)} transitioned`,
+        `from ${colorPrev(previousStatus.HealthStatus)}(${colorPrev(previousStatus.Status)})`,
+        `to ${colorNew(status.HealthStatus)}(${colorNew(status.Status)})`
+    ].join(' ')
 
     log(message)
 
     return message
 }
 
+/**
+ * Returns a promise that will be resolved once the provided bean status report
+ * changes to Ready.
+ *
+ * @param  {Bean} bean - bean to be monitorized
+ * @param  {Function} logger - handler for the status changes
+ * @param  {Object} previousStatus - Previous status, result from Bean#describeHealth
+ * @return {Promise} resolved once the status of the bean is Ready
+ */
 export async function wait4deploy(bean, logger, previousStatus = null) {
     await delay(IS_TEST ? 0 : 2000)
 
-    let status;
+    let status
 
     try {
         status = await bean.describeHealth()
@@ -99,6 +110,18 @@ export async function wait4deploy(bean, logger, previousStatus = null) {
         return status
 }
 
+/**
+ * Uploads the given file to s3, creates a versio of the bean with the
+ * uploaded file, tags it as a bean version with the provided options and
+ * deploys the just uploaded version to the bean.
+ *
+ * @async
+ * @param  {Object} opts    - see {@link buildOptions}
+ * @param  {external:vinyl.File} file - The file to upload
+ * @param  {S3File} s3file - The s3 instance where to upload the file
+ * @param  {Bean} bean - the bean where to deploy the file tagged as a version.
+ * @return {Promise<external:vinyl.File>} The original file provided
+ */
 export async function deploy(opts, file, s3file, bean) {
     try {
         await s3file.upload(file)
@@ -119,8 +142,27 @@ export async function deploy(opts, file, s3file, bean) {
     return file
 }
 
+/**
+ * An object with the following contents will built and retunred:
+ * * name: opts.name || name package.json
+ * * version: opts.version || version package.json
+ * * timestamp: opts.timestamp || true
+ * * waitForDeploy: opts.waitForDeploy || true
+ * * amazon
+ * * versionLabel: version. version + currentTimestamp if timestamp was true
+ * * filename: versionLavel + '.zip'
+ *
+ * If the resulting object amazon property contains accessKeyId and
+ * secretAccessKey, both will be added as `AWS.config.credentials`.
+ *
+ * If the resulting object amazon property contains signatureVersion, it will
+ * be added to `AWS.config.credentials`, ese v4 will be used as signatureVersion
+ *
+ * @param  {Object} opts
+ * @return {Object}
+ * @throws {PluginError} if opts.amazon is not defined
+ */
 export function buildOptions(opts) {
-
     const options = Object.assign({}, {
         name: undefined,
         version: undefined,
@@ -154,18 +196,24 @@ export function buildOptions(opts) {
         AWS.config.credentials = new AWS.Credentials({
             accessKeyId: opts.amazon.accessKeyId,
             secretAccessKey: opts.amazon.secretAccessKey,
-            signatureVersion: options.amazon.signatureVersion || 'v4'
+            signatureVersion: opts.amazon.signatureVersion || 'v4'
         })
     }
 
     return options
 }
 
+/**
+ * Gulp plugin. Returns a gulp-pipeable stream that allows to deploy the piped
+ * file into the elastic beanstalk application defined on opts.
+ *
+ * @param  {Object} opts - See {@link #buildOptions}
+ * @return {Streams2}
+ */
 export function gulpEbDeploy(opts) {
-
     opts = buildOptions(opts)
 
-    const s3file =  new S3File({
+    const s3file = new S3File({
         bucket: opts.amazon.bucket,
         path: join(opts.name, opts.filename)
     })

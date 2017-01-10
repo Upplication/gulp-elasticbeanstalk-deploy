@@ -1,17 +1,15 @@
+/* eslint require-jsdoc: "off", new-cap: "off", no-invalid-this: "off" */
 import 'should'
 import { stub } from 'sinon'
 import { S3 } from 'aws-sdk'
 import { S3File } from '../../src/aws'
 
 describe('S3File', () => {
-
     describe('constructor', () => {
         it('should throw if bucket is not valid', () => {
-
             const build = function(v) {
                 return () => new S3File({ bucket: v })
             }
-
             // null
             build(null).should.throw(/bucket id/i)
             // undefined
@@ -25,14 +23,12 @@ describe('S3File', () => {
         })
 
         it('should throw if path is not valid', () => {
-
             const build = function(v) {
                 return () => new S3File({
                     bucket: 'bucket',
                     path: v
                 })
             }
-
             // null
             build(null).should.throw(/bucket path/i)
             // undefined
@@ -70,8 +66,7 @@ describe('S3File', () => {
     })
 
     describe('#create', () => {
-
-        let file;
+        let file
 
         beforeEach(() => {
             file = new S3File({
@@ -104,8 +99,8 @@ describe('S3File', () => {
     })
 
     describe('#upload', () => {
-
-        let file, vinylFile
+        let file
+        let vinylFile
 
         beforeEach(() => {
             file = new S3File({
@@ -156,5 +151,4 @@ describe('S3File', () => {
             return file.upload(vinylFile).should.be.fulfilledWith('test_result')
         })
     })
-
 })

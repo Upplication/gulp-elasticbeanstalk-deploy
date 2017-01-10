@@ -1,4 +1,5 @@
-import { readFileSync, statSync } from 'fs'
+/* eslint require-jsdoc: "off", new-cap: "off", no-invalid-this: "off" */
+import { readFileSync } from 'fs'
 import should from 'should'
 import { spy, stub } from 'sinon'
 import AWS from 'aws-sdk'
@@ -6,11 +7,12 @@ import { File } from 'gulp-util'
 import { S3File, Bean } from '../src/aws'
 import * as plugin from '../src/plugin'
 import gulpEbDeploy from '../src'
-import zip from 'gulp-zip'
 
 describe('Gulp plugin', () => {
-
-    let file, s3file, bean, opts
+    let file
+    let s3file
+    let bean
+    let opts
 
     beforeEach(() => {
         // Stub AWS wrappers
@@ -212,14 +214,12 @@ describe('Gulp plugin', () => {
     })
 
     describe('deploy', () => {
-
         it('should return the original file', async () => {
             const f = await plugin.deploy(opts, file, s3file, bean)
             f.should.be.equal(file)
         })
 
         it('should upload the file, create version and update', async () => {
-
             await plugin.deploy(opts, file, s3file, bean)
 
             s3file.upload
@@ -243,7 +243,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should create the bucket if the upload fails with NoSuchBucket, upload, create version and update', async () => {
-
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -274,7 +273,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should fail if the upload fails with an error different from NoSuchBucket', async () => {
-
             s3file.upload
                 .returns(Promise.reject(new Error()))
 
@@ -293,7 +291,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should fail if the upload fails again after getting NoSuchBucket', async () => {
-
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -317,7 +314,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should fail if the bucket creation fails after getting NoSuchBucket', async () => {
-
             const error = new Error()
             error.code = 'NoSuchBucket'
 
@@ -345,7 +341,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should fail if the application version creation fails', async () => {
-
             bean.createVersion
                 .onCall(0).returns(Promise.reject(new Error()))
 
@@ -376,7 +371,6 @@ describe('Gulp plugin', () => {
         })
 
         it('should fail if the environment update fails', async () => {
-
             bean.update
                 .onCall(0).returns(Promise.reject(new Error()))
 
@@ -465,7 +459,7 @@ describe('Gulp plugin', () => {
 
     describe('buildOptions', () => {
         const buildOptions = plugin.buildOptions
-        const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))  
+        const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))
 
         it('should throw if no amazon config is provided', () => {
             (() => buildOptions({})).should.throw(/amazon/)
@@ -541,7 +535,7 @@ describe('Gulp plugin', () => {
 
         it('should update AWS.config.credentials with the provided values', () => {
             spy(AWS, 'Credentials')
-            const opts = buildOptions({
+            buildOptions({
                 amazon: {
                     accessKeyId: '__accessKeyId',
                     secretAccessKey: '__secretAccessKey'
@@ -557,7 +551,7 @@ describe('Gulp plugin', () => {
 
         it('should not update AWS.config.credentials if no access parameters were specified', () => {
             spy(AWS, 'Credentials')
-            const opts = buildOptions({
+            buildOptions({
                 amazon: {}
             })
             AWS.Credentials.called.should.be.false()
@@ -580,9 +574,8 @@ describe('Gulp plugin', () => {
             })
         })
 
-        it('it should emit a single zip file', (done) => {
-            try{
-
+        it('it should emit a single zip file', done => {
+            try {
                 const deployer = gulpEbDeploy({
                     amazon: {
                         region: 'euwest',
@@ -593,7 +586,7 @@ describe('Gulp plugin', () => {
                 })
 
                 let files = []
-                deployer.on('data', (file) => {
+                deployer.on('data', file => {
                     files.push(file)
                 })
 
@@ -606,7 +599,9 @@ describe('Gulp plugin', () => {
 
                 deployer.write(fakeFile)
                 deployer.end()
-            } catch (e) { done(e) }
+            } catch (e) {
+                done(e)
+            }
         })
     })
 })

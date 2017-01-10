@@ -4,7 +4,7 @@
   "description": "Gulp plugin for deploying into Amazon Elastic Beanstalk instance",
   "main": "lib/index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test nyc mocha",
+    "test": "eslint src/ test/ && cross-env NODE_ENV=test nyc mocha",
     "coverage": "cross-env NODE_ENV=test nyc report --reporter=text-lcov | coveralls",
     "build": "babel src -d lib",
     "preversion": "npm test",
@@ -56,6 +56,8 @@
     "babel-register": "^6.14.0",
     "coveralls": "^2.11.12",
     "cross-env": "^2.0.0",
+    "eslint": "^3.13.0",
+    "eslint-config-google": "^0.7.1",
     "mocha": "^3.0.2",
     "mock-aws": "^1.2.3",
     "nyc": "^8.1.0",
