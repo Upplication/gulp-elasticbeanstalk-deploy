@@ -17,7 +17,10 @@ gulp.task('deploy', function() {
         'lib/**/*',
         'docs/**/*.html',
         'package.json'
-    ], { base: './' })
+    ], {
+        base: './',
+        nodir: true // Set this if you have problems when unzipping
+    })
     .pipe(gulpEbDeploy({
         name: 'my-application', // optional: If not set, the name from package.json will be used
         version: '1.0.0', // optional: If not set, the version from package.json will be used
