@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { omit, isEqual } from 'lodash'
 import { log as gulpLog, colors, PluginError } from 'gulp-util'
@@ -9,6 +9,43 @@ import AWS from 'aws-sdk'
 import pad from 'left-pad'
 import { S3File, Bean } from './aws'
 
+const credentialProviders = [
+    {
+        Ctor: AWS.Credentials,
+        fields: [
+            [ 'accessKeyId', 'secretAccessKey' ]
+        ]
+    },
+    {
+        Ctor: AWS.SAMLCredentials,
+        fields: [
+            [ 'RoleArn', 'PrincipalArn', 'SAMLAssertion' ]
+        ]
+    },
+    {
+        Ctor: AWS.CognitoIdentityCredentials,
+        fields: [
+            [ 'IdentityPoolId' ],
+            [ 'IdentityId' ]
+        ]
+    },
+    {
+        // we can only detect these if a custom profile is specified
+        // but that is fine because shared ini file credentials using the default profile
+        // are used by the AWS SDK when no credentials are specified
+        Ctor: AWS.SharedIniFileCredentials,
+        fields: [
+            [ 'profile' ]
+        ]
+    },
+    {
+        Ctor: AWS.TemporaryCredentials,
+        fields: [
+            [ 'SerialNumber', 'TokenCode' ],
+            [ 'RoleArn' ]
+        ]
+    }
+]
 const IS_TEST = process.env['NODE_ENV'] === 'test'
 const log = IS_TEST ? () => {} : gulpLog
 
@@ -129,7 +166,7 @@ export async function deploy(opts, file, s3file, bean) {
         if (e.code !== 'NoSuchBucket')
             throw e
 
-        await s3file.create()
+        await s3file.create(opts.region)
         await s3file.upload(file)
     }
 
@@ -191,16 +228,52 @@ export function buildOptions(opts) {
     if (!options.amazon)
         throw new PluginError(PLUGIN_NAME, 'No amazon config provided')
 
-    // if keys are provided, create new credentials, otherwise defaults will be used
-    if (options.amazon.accessKeyId && options.amazon.secretAccessKey) {
+    AWS.config.update(Object.assign({
+        signatureVersion: 'v4'
+    }, options.amazon.config || {}))
+
+    if (options.amazon.credentials !== undefined) {
+        const creds = options.amazon.credentials
+        const credsType = typeof(creds)
+
+        if (credsType === 'string') {
+            // if the credentials are of type string, assume the user is specifying
+            // an environment variable name prefix
+            AWS.config.credentials = existsSync(creds) ? new AWS.FileSystemCredentials(creds)
+                : new AWS.EnvironmentCredentials(creds)
+        } else if (credsType !== 'object') {
+            // otherwise the credentials must be an object
+            throw new PluginError(PLUGIN_NAME, `Amazon credentials must be an object, got a '${typeof(creds)}'.`)
+        } else if (creds.constructor.name === 'Credentials' ||
+            typeof(creds.constructor.__super__) === 'function' &&
+            creds.constructor.__super__.name === 'Credentials') {
+            // support pre-build objects of or inheriting the AWS.Credentials class
+            AWS.config.credentials = creds
+        } else {
+            // otherwise try to find a matching provider for the supplied credentials object
+            const provider = credentialProviders.find(prov =>
+                prov.fields.find(fields =>
+                    fields.every(field => creds[field] !== undefined)
+                )
+            )
+            if (provider === undefined)
+                throw new PluginError(PLUGIN_NAME, `Could not find a matching AWS credentials provider for the supplied credentials object.`)
+
+            try {
+                AWS.config.credentials = new provider.Ctor(creds)
+            } catch(err) {
+                throw new PluginError(PLUGIN_NAME, `An error occured while trying to construct AWS.${provider.Ctor.name} from supplied credentials object: ${err}`)
+            }
+        }
+    } else if (options.amazon.accessKeyId && options.amazon.secretAccessKey) {
+        // legacy support for the access key id and secret access key
+        // passed in directly via the options.amazon object
+        log('options.amazon.accessKeyId and options.amazon.secretAccessKey are deprecated and will be removed in a future version. Use options.amazon.credentials instead.')
         AWS.config.credentials = new AWS.Credentials({
             accessKeyId: opts.amazon.accessKeyId,
             secretAccessKey: opts.amazon.secretAccessKey
         })
     }
-
-    // Set v4 by default
-    AWS.config.signatureVersion = options.amazon.signatureVersion || 'v4'
 
     return options
 }

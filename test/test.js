@@ -1,5 +1,5 @@
 /* eslint require-jsdoc: "off", new-cap: "off", no-invalid-this: "off" */
-import { readFileSync } from 'fs'
+import { readFileSync, writeFileSync, unlinkSync } from 'fs'
 import should from 'should'
 import { spy, stub } from 'sinon'
 import AWS from 'aws-sdk'
@@ -7,6 +7,9 @@ import { File } from 'gulp-util'
 import { S3File, Bean } from '../src/aws'
 import * as plugin from '../src/plugin'
 import gulpEbDeploy from '../src'
+import os from 'os'
+import uuidv4 from 'uuid/v4'
+import path from 'path'
 
 describe('Gulp plugin', () => {
     let file
@@ -539,18 +542,6 @@ describe('Gulp plugin', () => {
             }
             AWS.config.credentials = null
         })
-        it('updates AWS.config.credentials with the provided values', () => {
-            spy(AWS, 'Credentials')
-            buildOptions({
-                amazon: {
-                    accessKeyId: '__accessKeyId',
-                    secretAccessKey: '__secretAccessKey'
-                }
-            })
-            AWS.Credentials.calledOnce.should.be.true()
-            AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
-            AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
-        })
 
         it('sets AWS.config with signatureVersion v4 by default', () => {
             spy(AWS, 'Credentials')
@@ -561,13 +552,146 @@ describe('Gulp plugin', () => {
         })
 
         it('allows to set a signatureVersion for AWS.config', () => {
-            spy(AWS, 'Credentials')
             buildOptions({
                 amazon: {
-                    signatureVersion: 'v2'
+                    config: {
+                        signatureVersion: 'v2'
+                    }
                 }
             })
             AWS.config.signatureVersion.should.be.equal('v2')
+        })
+
+        it('updates AWS.config.credentials with legacy values', () => {
+            spy(AWS, 'Credentials')
+            buildOptions({
+                amazon: {
+                    accessKeyId: '__accessKeyId',
+                    secretAccessKey: '__secretAccessKey'
+                }
+            })
+            AWS.Credentials.calledOnce.should.be.true()
+            AWS.config.credentials.should.be.instanceOf(AWS.Credentials)
+            AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
+            AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
+        })
+
+        it('updates AWS.config.credentials with access key id and secret access key.', () => {
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        accessKeyId: '__accessKeyId',
+                        secretAccessKey: '__secretAccessKey'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.Credentials)
+            AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
+            AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
+        })
+
+        it('updates AWS.config.credentials with SAML credentials.', () => {
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        RoleArn: '__roleArn',
+                        PrincipalArn: '__principalArn',
+                        SAMLAssertion: '__samlAssertion'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.SAMLCredentials)
+            AWS.config.credentials.params.RoleArn.should.be.equal('__roleArn')
+            AWS.config.credentials.params.PrincipalArn.should.be.equal('__principalArn')
+            AWS.config.credentials.params.SAMLAssertion.should.be.equal('__samlAssertion')
+        })
+
+        it('updates AWS.config.credentials with MFA temporary credentials.', () => {
+            AWS.config.credentials = new AWS.Credentials()
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        SerialNumber: '__serialNumber',
+                        TokenCode: '__tokenCode'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.TemporaryCredentials)
+            AWS.config.credentials.params.SerialNumber.should.be.equal('__serialNumber')
+            AWS.config.credentials.params.TokenCode.should.be.equal('__tokenCode')
+        })
+
+        it('updates AWS.config.credentials with IAM role temporary credentials.', () => {
+            AWS.config.credentials = new AWS.Credentials()
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        RoleArn: '__roleArn'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.TemporaryCredentials)
+            AWS.config.credentials.params.RoleArn.should.be.equal('__roleArn')
+        })
+
+        it('updates AWS.config.credentials with Cognito identity ID credentials.', () => {
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        IdentityId: '__indentityId'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.CognitoIdentityCredentials)
+            AWS.config.credentials.params.IdentityId.should.be.equal('__indentityId')
+        })
+
+        it('updates AWS.config.credentials with Cognito identity pool ID credentials.', () => {
+            buildOptions({
+                amazon: {
+                    credentials: {
+                        IdentityPoolId: '__indentityPoolId'
+                    }
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.CognitoIdentityCredentials)
+            AWS.config.credentials.params.IdentityPoolId.should.be.equal('__indentityPoolId')
+        })
+
+        it('updates AWS.config.credentials with an environment credential prefix.', () => {
+            process.env.__envPrefix_ACCESS_KEY_ID = '__accessKeyId'
+            process.env.__envPrefix_SECRET_ACCESS_KEY = '__secretAccessKey'
+
+            buildOptions({
+                amazon: {
+                    credentials: '__envPrefix'
+                }
+            })
+            AWS.config.credentials.should.be.instanceOf(AWS.EnvironmentCredentials)
+            AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
+            AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
+
+            process.env.__envPrefix_ACCESS_KEY_ID = ''
+            process.env.__envPrefix_SECRET_ACCESS_KEY = ''
+        })
+
+        it('updates AWS.config.credentials with credentials loaded from a credential file', () => {
+            const fileName = path.join(os.tmpdir(), `credentials-${uuidv4()}.json`)
+            writeFileSync(fileName, JSON.stringify({
+                accessKeyId: '__accessKeyId',
+                secretAccessKey: '__secretAccessKey'
+            }))
+
+            buildOptions({
+                amazon: {
+                    credentials: fileName
+                }
+            })
+            unlinkSync(fileName)
+
+            AWS.config.credentials.should.be.instanceOf(AWS.FileSystemCredentials)
+            AWS.config.credentials.accessKeyId.should.be.equal('__accessKeyId')
+            AWS.config.credentials.secretAccessKey.should.be.equal('__secretAccessKey')
         })
 
         it('does not update AWS.config.credentials if no access parameters were specified', () => {
@@ -577,6 +701,48 @@ describe('Gulp plugin', () => {
             })
             AWS.Credentials.called.should.be.false()
             should(AWS.config.credentials).be.null()
+        })
+
+        it('updates AWS.config.credentials with a Credentials object', () => {
+            spy(AWS, 'Credentials')
+            const credentials = new AWS.Credentials()
+            buildOptions({
+                amazon: {
+                    credentials: credentials
+                }
+            })
+            AWS.Credentials.calledOnce.should.be.true()
+            AWS.config.credentials.should.be.equal(credentials)
+        })
+
+        it('throws an error when provided credentials are not a string or object', () => {
+            (() => buildOptions({
+                amazon: {
+                    credentials: 0
+                }
+            })).should.throw()
+        })
+
+        it('throws an error when no matching credential provider is found', () => {
+            (() => buildOptions({
+                amazon: {
+                    credentials: {
+                        unknown: '__unknown'
+                    }
+                }
+            })).should.throw()
+        })
+
+        it('rethrows an error thrown in the an AWS credentials constructor', () => {
+            // temporary credentials missing master credentials
+            (() => buildOptions({
+                amazon: {
+                    credentials: {
+                        SerialNumber: '__serialNumber',
+                        TokenCode: '__tokenCode'
+                    }
+                }
+            })).should.throw()
         })
     })
 
