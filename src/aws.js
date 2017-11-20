@@ -61,13 +61,18 @@ export class S3File {
      *
      * @async
      * @method S3File#create
+     * @param  {String} [region]  Region where the bucket is to be created
      * @return {Promise}  Resolved once the action has completed
-     *
+
      * @see [AWS.S3#createBucket]{@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#createBucket-property}
      */
-    async create() {
+    async create(region) {
         return await new Promise((resolve, reject) => {
-            this.s3bucket.createBucket((err, result) => {
+            this.s3bucket.createBucket({
+                CreateBucketConfiguration: {
+                   LocationConstraint: region
+                }
+            }, (err, result) => {
                 if (err) reject(err)
                 else resolve(result)
             })
