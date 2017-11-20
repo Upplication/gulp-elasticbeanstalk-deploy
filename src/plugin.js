@@ -189,11 +189,11 @@ export async function deploy(opts, file, s3file, bean) {
  * * versionLabel: version. version + currentTimestamp if timestamp was true
  * * filename: versionLavel + '.zip'
  *
- * If the resulting object amazon property contains accessKeyId and
- * secretAccessKey, both will be added as `AWS.config.credentials`.
+ * If the resulting object amazon property contains credentials,
+   they will be added as `AWS.config.credentials`.
  *
- * If the resulting object amazon property contains signatureVersion, it will
- * be added to `AWS.config`, ese v4 will be used as signatureVersion
+ * If the resulting object amazon property contains a configuration object,
+ * it will be applied to `AWS.config`.
  *
  * @param  {Object} opts
  * @return {Object}
@@ -231,6 +231,10 @@ export function buildOptions(opts) {
     AWS.config.update(Object.assign({
         signatureVersion: 'v4'
     }, options.amazon.config || {}))
+
+    // legacy support for signatureVersion now covered by config parameter
+    if (options.amazon.signatureVersion)
+        AWS.config.signatureVersion = options.amazon.signatureVersion
 
     if (options.amazon.credentials !== undefined) {
         const creds = options.amazon.credentials

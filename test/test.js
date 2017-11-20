@@ -551,7 +551,16 @@ describe('Gulp plugin', () => {
             AWS.config.signatureVersion.should.be.equal('v4')
         })
 
-        it('allows to set a signatureVersion for AWS.config', () => {
+        it('allows to set a signatureVersion for AWS.config (legacy)', () => {
+            buildOptions({
+                amazon: {
+                    signatureVersion: 'v2'
+                }
+            })
+            AWS.config.signatureVersion.should.be.equal('v2')
+        })
+
+        it('allows to supply additional paramters to passed into AWS.config', () => {
             buildOptions({
                 amazon: {
                     config: {

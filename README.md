@@ -28,7 +28,9 @@ gulp.task('deploy', function() {
                 accessKeyId: "< your access key (fyi, the 'short' one) >", // optional
                 secretAccessKey: "< your secret access key (fyi, the 'long' one) >", // optional
             }
-            signatureVersion: "v4", // optional
+            config: { // optional
+                signatureVersion: "v4",
+            }
             region: 'eu-west-1',
             bucket: 'elasticbeanstalk-apps',
             applicationName: 'MyApplication',
