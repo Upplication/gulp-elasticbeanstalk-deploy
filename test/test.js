@@ -448,8 +448,9 @@ describe('Gulp plugin', () => {
             const valRgx = /^([0-9]{4})\.([0-9]{2})\.([0-9]{2})_([0-9]{2})\.([0-9]{2})\.([0-9]{2})$/
             dateStr.should.match(valRgx)
             const match = valRgx.exec(dateStr)
+            const currentMonth = now.getMonth()+1
             now.getFullYear().should.be.equal(Number(match[1]))
-            now.getMonth().should.be.equal(Number(match[2]))
+            currentMonth.should.be.equal(Number(match[2]))
             now.getDate().should.be.equal(Number(match[3]))
             now.getHours().should.be.equal(Number(match[4]))
             now.getMinutes().should.be.equal(Number(match[5]))
