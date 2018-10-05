@@ -30,7 +30,7 @@ export function delay(time = 100) {
 export function currentDate() {
     const date = new Date()
     const YYYY = pad(date.getFullYear())
-    const MM = pad(date.getMonth(), 2, 0)
+    const MM = pad(date.getMonth() + 1, 2, 0)
     const DD = pad(date.getDate(), 2, 0)
     const HH = pad(date.getHours(), 2, 0)
     const mm = pad(date.getMinutes(), 2, 0)
