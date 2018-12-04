@@ -3,7 +3,7 @@ import { readFileSync } from 'fs'
 import should from 'should'
 import { spy, stub } from 'sinon'
 import AWS from 'aws-sdk'
-import { File } from 'gulp-util'
+import Vinyl from 'vinyl'
 import { S3File, Bean } from '../src/aws'
 import * as plugin from '../src/plugin'
 import gulpEbDeploy from '../src'
@@ -584,7 +584,7 @@ describe('Gulp plugin', () => {
         let fakeFile = null
 
         before(() => {
-            fakeFile = new File({
+            fakeFile = new Vinyl({
                 contents: new Buffer('Hello Mah Friend'),
                 cwd: __dirname,
                 base: __dirname + '/test',
